@@ -5,6 +5,7 @@ const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const crypto = require('crypto');
 const app = express();
+app.use(express.urlencoded({extended:true}))
 
 // route for the main site
 app.get('/', (req, res) => {
@@ -70,7 +71,6 @@ const hashPassword = (password) => {
     return md5sum.update(password + salt).digest('hex'); // lægger salt på password, som er en string før
   }
 
-
 app.get("/logout", (req, res) => {
   req.session.destroy((err) => {});
   return res.send("Thank you! Visit again");
@@ -95,6 +95,8 @@ app.post("/signup", bodyParser.urlencoded(), async (req, res) => {
   res.redirect('/login');
 }) 
 
+
+// Login herunder
 app.post("/login", bodyParser.urlencoded(), async (req, res) => {
 
 const user = await getUserByUsername (req.body.username)
@@ -104,4 +106,28 @@ const user = await getUserByUsername (req.body.username)
     console.log("Ingen bruger blev fundet.")
     return res.redirect("/signup");
   }
+
+
+// Hint: Her skal vi tjekke om brugeren findes i databasen og om passwordet er korrekt
+if (user[0].password == hashPassword(req.body.password)) { // 0 finder bare det første sted i array'et, 
+  req.session.username = req.body.username;
+  console.log(req.session);
+  res.redirect("/");
+} else {
+  // Sender en error 401 (unauthorized) til klienten
+  return  res.sendStatus(401);
+}
+
+
+app.get("/", (req, res) => {
+req.session.destroy((err) => {});
+return res.send("Thank you! Visit again");
+});
+
+  // Opgave 2
+  // Brug funktionen hashPassword til at kryptere passwords (husk både at hash ved signup og login!)
+  let hashPW = hashPassword(req.body.password) // hashing af password
+  addUserToDatabase(req.body.username, hashPW);
+  res.redirect('/'); 
+
 });
