@@ -21,15 +21,6 @@ db.serialize(function() {
   db.run('create table if not exists users (userId integer primary key, username text not null, password text not null)');
 });
 
-// Tilføjer user til db
-const addUserToDatabase = (username, password) => { // opretter database
-    db.run(
-      'insert into users (username, password) values (?, ?)',  // sql statement
-      [username, password], 
-      function(err) {
-        if (err) {
-          console.error(err);
-        }
-      }
-    );
-  }
+  app.get("/signup", (req, res) => {
+        return res.sendFile("/login.html")
+  })
