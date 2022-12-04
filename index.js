@@ -12,9 +12,22 @@ app.get('/', (req, res) => {
     return res.sendFile(path.join(__dirname, "views/index.html"))
 })
 
+app.use(express.static(__dirname + '/public'))
+
+app.use(
+    session({ // initialisere session som indeholder nogle forskellige ting 
+        secret: "Keep it secret",
+        name: "uniqueSessionID",
+        saveUninitialized: false,
+    })
+);
+
 app.listen(3000, () => {
     console.log('App listening on port 3000')
 });
+
+// gør så at boydParser fungerer optimalt
+app.use(bodyParser.urlencoded({exteneded:true}));
 
 // Sqlite ting
 const db = new sqlite3.Database('./db.sqlite');
@@ -80,7 +93,7 @@ app.get("/signup", (req, res) => {
   if (req.session.loggedIn) {
       return res.redirect("/dashboard");
   } else {
-      return res.sendFile("signup.html", { root: path.join(__dirname, "public") });
+      return res.sendFile("signup.html", { root: path.join(__dirname, "views") });
   }
 });
 
@@ -95,7 +108,6 @@ app.post("/signup", bodyParser.urlencoded(), async (req, res) => {
   res.redirect('/login');
 }) 
 
-
 // Login herunder
 app.post("/login", bodyParser.urlencoded(), async (req, res) => {
 
@@ -108,8 +120,11 @@ const user = await getUserByUsername (req.body.username)
   }
 
 
+
+
 // Hint: Her skal vi tjekke om brugeren findes i databasen og om passwordet er korrekt
 if (user[0].password == hashPassword(req.body.password)) { // 0 finder bare det første sted i array'et, 
+  req.session.loggedIn = true;
   req.session.username = req.body.username;
   console.log(req.session);
   res.redirect("/");
@@ -119,9 +134,16 @@ if (user[0].password == hashPassword(req.body.password)) { // 0 finder bare det 
 }
 
 
-app.get("/", (req, res) => {
+app.get("/logout", (req, res) => {
 req.session.destroy((err) => {});
 return res.send("Thank you! Visit again");
+});
+
+app.post("/signup", bodyParser.urlencoded(), async (req, res) => {
+  const user = await getUserByUsername(req.body.username)
+  if (user.length > 0) {
+    return res.send('Username already exists');
+  }
 });
 
   // Opgave 2
