@@ -1,0 +1,31 @@
+{
+  "name": "dis-eksamen",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/claudiotruong1/dis-eksamen.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/claudiotruong1/dis-eksamen/issues"
+  },
+  "homepage": "https://github.com/claudiotruong1/dis-eksamen#readme",
+  "dependencies": {
+    "bower": "^1.8.14",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "express": "^4.18.2",
+    "http": "0.0.1-security",
+    "jquery": "^3.6.1",
+    "socket.io": "^4.5.4",
+    "socket.io-client": "^4.5.4",
+    "sqlite3": "^5.1.2"
+  }
+}
