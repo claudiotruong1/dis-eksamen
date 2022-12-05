@@ -36,6 +36,7 @@ db.serialize(function() {
   console.log('creating databases if they don\'t exist');
   db.run('create table if not exists users (userId integer primary key, username text not null, password text not null)');
 });
+db.run('CREATE TABLE IF NOT EXISTS messages (messageId integer PRIMARY KEY, message text NOT NULL, timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, userId INT, FOREIGN KEY (userId) REFERENCES users_public (userId))')
 
 // signup route
   app.get("/signup", (req, res) => {
