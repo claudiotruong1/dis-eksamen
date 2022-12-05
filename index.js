@@ -119,9 +119,6 @@ const user = await getUserByUsername (req.body.username)
     return res.redirect("/signup");
   }
 
-
-
-
 // Hint: Her skal vi tjekke om brugeren findes i databasen og om passwordet er korrekt
 if (user[0].password == hashPassword(req.body.password)) { // 0 finder bare det første sted i array'et, 
   req.session.loggedIn = true;
