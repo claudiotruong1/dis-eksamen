@@ -186,7 +186,7 @@ const getAllMessages = () => {
   })
 }
 
-// socket IO ting
+// socket IO 
 var io = require("socket.io")(server, {
     /* Handling CORS: https://socket.io/docs/v3/handling-cors/ for ngrok.io */
     cors: {
@@ -227,7 +227,7 @@ io.on('connection', function(socket){
 
 // HTTP ting
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/views/chat.html');
+  res.sendFile(__dirname + '../views/chat.html');
 });
 
 // lytter på port 3000

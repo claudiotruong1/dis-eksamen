@@ -1,6 +1,6 @@
 $(document).ready(function(){
     var socket = io.connect('http://localhost:3000');
-    var username = prompt("Hvad er dit navn??");
+    var username = prompt("What is your name?");
     socket.emit('join', username);
 
     // Listens for form submission
