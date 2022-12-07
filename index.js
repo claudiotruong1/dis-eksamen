@@ -1,16 +1,14 @@
 const express = require('express');
 const session = require('express-session');
+const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
 const crypto = require('crypto');
-const app = express();
 app.use(express.static(__dirname + '/views'))
-app.use(express.static(__dirname + '/views/chat.html'))
-app.use(express.static(__dirname+'/socket.io'))
 const server = require('http').createServer(app)
 // app.use(express.urlencoded({extended:true}))
-
+// app.use(express.static(__dirname+'/socket.io'))
 
 // route for hovedsiden (3000)
 app.get('/hjemmeside', (req, res) => {
@@ -41,7 +39,11 @@ db.serialize(function() {
 });
 
 // database for alle beskederne i chatten
-db.run('CREATE TABLE IF NOT EXISTS messages (messageId integer PRIMARY KEY, message text NOT NULL, timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, userId INT, FOREIGN KEY (userId) REFERENCES users_public (userId))')
+db.serialize(function() {
+  console.log('creating databases if they don\'t exist');
+  db.run('create table if not exists messages (messageid integer primary key, username text not null, message text, timestamp integer)');
+});
+
 
 // signup route
   app.get("/signup", (req, res) => {
@@ -141,6 +143,7 @@ if (user[0].password == hashPassword(req.body.password)) { // 0 finder bare det 
   return  res.sendStatus(401);
 }
 
+
 // route for logud
 app.get("/logout", (req, res) => {
 req.session.destroy((err) => {});
@@ -152,19 +155,19 @@ return res.send("Thank you! Visit again");
   let hashPW = hashPassword(req.body.password) // hashing af password
   addUserToDatabase(req.body.username, hashPW);
   res.redirect('/'); 
-
 });
 
 // SOCKET.io herunder
 // socket IO ting
+
 // Tilføjer message til db `message: {username, message}`
 const addMessageToDatabase = (message) => {
   
   message.message = hashPassword(message)
   
   db.run(
-    'insert into messages (username, message) values (?, ?)', 
-    [message.username, message.message], 
+    'insert into messages (username, message, timestamp) values (?, ?, ?)', 
+    [message.username, message.message, Date.now()], 
     function(err) {
       if (err) {
         console.error(err);
@@ -188,11 +191,11 @@ const getAllMessages = () => {
 
 // socket IO 
 var io = require("socket.io")(server, {
-    /* Handling CORS: https://socket.io/docs/v3/handling-cors/ for ngrok.io */
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
-    }
+  /* Handling CORS: https://socket.io/docs/v3/handling-cors/ for ngrok.io */
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
 io.on('connection', function(socket){
