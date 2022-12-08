@@ -1,8 +1,8 @@
-document.addEventListener("DOMContentLoaded", (e)=>{
+$(document).ready(function(){
   var socket = io.connect('http://localhost:3000');
   var username = prompt("What is your name?");
-  console.log(username)
   socket.emit('join', username);
+  
 
   // Listens for form submission
   $("#chatForm").on('submit', function(e){
@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", (e)=>{
   // adds HTML message to chat
   const addMessageToChat = (message) => {
     const messageElement = document.createElement('li');
+    // Opgave 2 ...
 
     messageElement.innerText = new Date(message.timestamp).toLocaleTimeString('DK') 
       + ': ' + message.username 
@@ -22,6 +23,7 @@ document.addEventListener("DOMContentLoaded", (e)=>{
 
     $("#messagesContainer").append(messageElement);
   }
+
 
   // On receiving one message: {username: '...', message: '...'}
   socket.on('new_message', function(message){
@@ -53,5 +55,4 @@ document.addEventListener("DOMContentLoaded", (e)=>{
   socket.on("removeChatter", function(name){
     $("#chatters li[data-name=" + name +"]").remove()
   })
-
 })

@@ -15,9 +15,8 @@ var io = require("socket.io")(server, {
   }
 });
 
-
 app.use(express.static(__dirname + '/views'))
-app.use(express.static(path.join(__dirname, "/socket.io/socket.io.js")))
+app.use(express.static(__dirname + '/socket.io/socket.io.js'))
 
 // initialisere session
 app.use(
@@ -48,17 +47,17 @@ db.serialize(function() {
 
 // route for hovedsiden (3000)
 app.get('/hjemmeside', (req, res) => {
-  return res.sendFile(path.join(__dirname, "views/index.html"))
+  return res.sendFile('/index.html', {root: path.join(__dirname, "views/")})
 });
 
 // signup route
   app.get("/signup", (req, res) => {
-        return res.sendFile(path.join(__dirname, "views/signup.html"))
+        return res.sendFile('/signup.html', {root: path.join(__dirname, "views/")})
   });
 
   // login route
   app.get("/login", (req, res) => {
-    return res.sendFile(path.join(__dirname, "views/login.html"))
+    return res.sendFile('/login.html', {root: path.join(__dirname, "views/")})
 });
 
 // route for logud
