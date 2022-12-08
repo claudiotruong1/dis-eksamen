@@ -3,28 +3,29 @@ const session = require('express-session');
 const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
-http = require('http')
 const sqlite3 = require('sqlite3').verbose();
 const crypto = require('crypto');
-app.use(express.static(__dirname + '/views'))
 const server = require('http').createServer(app)
-// app.use(express.urlencoded({extended:true}))
-// app.use(express.static(__dirname+'/socket.io'))
 
-// route for hovedsiden (3000)
-app.get('/hjemmeside', (req, res) => {
-    return res.sendFile(path.join(__dirname, "views/index.html"))
-})
+var io = require("socket.io")(server, {
+  /* Handling CORS: https://socket.io/docs/v3/handling-cors/ for ngrok.io */
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
+});
 
-// app.use(express.static(__dirname + '/public'))
+
+app.use(express.static(__dirname + '/views'))
+app.use(express.static(path.join(__dirname, "/socket.io/socket.io.js")))
 
 // initialisere session
 app.use(
-    session({ 
-        secret: "Keep it secret",
-        name: "uniqueSessionID",
-        saveUninitialized: false,
-    })
+  session({ 
+      secret: "Keep it secret",
+      name: "uniqueSessionID",
+      saveUninitialized: false,
+  })
 );
 
 // gør så at boydParser fungerer optimalt
@@ -45,6 +46,10 @@ db.serialize(function() {
   db.run('create table if not exists messages (messageid integer primary key, username text not null, message text, timestamp integer)');
 });
 
+// route for hovedsiden (3000)
+app.get('/hjemmeside', (req, res) => {
+  return res.sendFile(path.join(__dirname, "views/index.html"))
+});
 
 // signup route
   app.get("/signup", (req, res) => {
@@ -55,6 +60,34 @@ db.serialize(function() {
   app.get("/login", (req, res) => {
     return res.sendFile(path.join(__dirname, "views/login.html"))
 });
+
+// route for logud
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {});
+  return res.send("Thank you! Visit again");
+});
+
+// route for signup formular
+app.get("/signup", (req, res) => {
+  if (req.session.loggedIn) {
+      return res.redirect("/dashboard");
+  } else {
+      return res.sendFile("signup.html", { root: path.join(__dirname, "views") });
+  }
+});
+
+// her postes brugeren
+app.post("/signup", bodyParser.urlencoded(), async (req, res) => {
+  const user = await getUserByUsername(req.body.username)
+  if (user.length > 0) {
+    return res.send('Username already exists');
+  }
+
+  // hashing af passwords
+  let hashPW = hashPassword(req.body.password) // hashing af password
+  addUserToDatabase(req.body.username, hashPW);
+  res.redirect('/login');
+}) 
 
 const getUserByUsername = (userName) => {
   // Smart måde at konvertere fra callback til promise:
@@ -94,34 +127,6 @@ const hashPassword = (password) => {
     return md5sum.update(password + salt).digest('hex'); // lægger salt på password, som er en string før
   }
 
-  // route for logud
-app.get("/logout", (req, res) => {
-  req.session.destroy((err) => {});
-  return res.send("Thank you! Visit again");
-});
-
-// route for signup formular
-app.get("/signup", (req, res) => {
-  if (req.session.loggedIn) {
-      return res.redirect("/dashboard");
-  } else {
-      return res.sendFile("signup.html", { root: path.join(__dirname, "views") });
-  }
-});
-
-// her postes brugeren
-app.post("/signup", bodyParser.urlencoded(), async (req, res) => {
-  const user = await getUserByUsername(req.body.username)
-  if (user.length > 0) {
-    return res.send('Username already exists');
-  }
-
-  // hashing af passwords
-  let hashPW = hashPassword(req.body.password) // hashing af password
-  addUserToDatabase(req.body.username, hashPW);
-  res.redirect('/login');
-}) 
-
 // Login herunder
 app.post("/login", bodyParser.urlencoded(), async (req, res) => {
 
@@ -144,13 +149,6 @@ if (user[0].password == hashPassword(req.body.password)) { // 0 finder bare det 
   return  res.sendStatus(401);
 }
 
-
-// route for logud
-app.get("/logout", (req, res) => {
-req.session.destroy((err) => {});
-return res.send("Thank you! Visit again");
-});
-
   // Opgave 2
   // Brug funktionen hashPassword til at kryptere passwords (husk både at hash ved signup og login!)
   let hashPW = hashPassword(req.body.password) // hashing af password
@@ -159,8 +157,6 @@ return res.send("Thank you! Visit again");
 });
 
 // SOCKET.io herunder
-// socket IO ting
-
 // Tilføjer message til db `message: {username, message}`
 const addMessageToDatabase = (message) => {
   
@@ -191,19 +187,14 @@ const getAllMessages = () => {
 }
 
 // socket IO 
-var io = require("socket.io")(server, {
-  /* Handling CORS: https://socket.io/docs/v3/handling-cors/ for ngrok.io */
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
 
 io.on('connection', function(socket){
+  console.log("New user connected")
 
   // Når en ny bruger joiner
   socket.on('join', async function(name){
     socket.username = name
+    console.log(name);
     io.sockets.emit("addChatter", name);
   
 
