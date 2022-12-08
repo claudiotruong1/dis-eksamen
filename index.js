@@ -3,6 +3,7 @@ const session = require('express-session');
 const app = express();
 const bodyParser = require('body-parser');
 const path = require('path');
+http = require('http')
 const sqlite3 = require('sqlite3').verbose();
 const crypto = require('crypto');
 app.use(express.static(__dirname + '/views'))
@@ -230,7 +231,7 @@ io.on('connection', function(socket){
 
 // HTTP ting
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '../views/chat.html');
+  res.sendFile(__dirname + '/views/chat.html');
 });
 
 // lytter på port 3000

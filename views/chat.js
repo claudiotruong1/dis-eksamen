@@ -54,3 +54,4 @@ $(document).ready(function(){
       $("#chatters li[data-name=" + name +"]").remove()
     })
   })
+
